@@ -3,7 +3,7 @@
   import ChangeLocation from '$lib/components/shared-components/change-location.svelte';
   import Portal from '$lib/components/shared-components/portal/portal.svelte';
   import { handleError } from '$lib/utils/handle-error';
-import { updateAsset, runAssetJobs, AssetJobName, type AssetResponseDto, AssetType } from '@immich/sdk';
+import { updateAsset, runAssetJobs, AssetJobName, type AssetResponseDto, AssetTypeEnum } from '@immich/sdk';
   import { mdiMapMarkerOutline, mdiPencil, mdiHeadSyncOutline } from '@mdi/js';
   import { notificationController, NotificationType } from '$lib/components/shared-components/notification/notification';
   import { getAssetJobMessage } from '$lib/utils';
@@ -100,7 +100,7 @@ import { updateAsset, runAssetJobs, AssetJobName, type AssetResponseDto, AssetTy
   </Portal>
 {/if}
 
-{#if asset.type === AssetType.VIDEO}
+{#if asset.type === AssetTypeEnum.Video}
   <button
     type="button"
     class="flex w-full text-start justify-between place-items-start gap-4 py-4 rounded-lg hover:dark:text-immich-dark-primary hover:text-immich-primary"
