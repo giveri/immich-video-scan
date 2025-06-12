@@ -237,6 +237,9 @@ where
 select
   "assets"."id",
   "assets"."visibility",
+  "assets"."ownerId",
+  "assets"."type",
+  "assets"."originalPath",
   to_json("exif") as "exifInfo",
   (
     select

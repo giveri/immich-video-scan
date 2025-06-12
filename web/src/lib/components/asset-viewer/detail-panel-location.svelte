@@ -3,8 +3,10 @@
   import ChangeLocation from '$lib/components/shared-components/change-location.svelte';
   import Portal from '$lib/components/shared-components/portal/portal.svelte';
   import { handleError } from '$lib/utils/handle-error';
-  import { updateAsset, type AssetResponseDto } from '@immich/sdk';
-  import { mdiMapMarkerOutline, mdiPencil } from '@mdi/js';
+import { updateAsset, runAssetJobs, AssetJobName, type AssetResponseDto, AssetType } from '@immich/sdk';
+  import { mdiMapMarkerOutline, mdiPencil, mdiHeadSyncOutline } from '@mdi/js';
+  import { notificationController, NotificationType } from '$lib/components/shared-components/notification/notification';
+  import { getAssetJobMessage } from '$lib/utils';
   import { t } from 'svelte-i18n';
 
   interface Props {
@@ -28,6 +30,15 @@
       handleError(error, $t('errors.unable_to_change_location'));
     }
   }
+
+  const handleRescanFaces = async () => {
+    try {
+      await runAssetJobs({ assetJobsDto: { assetIds: [asset.id], name: AssetJobName.RefreshFaces } });
+      notificationController.show({ message: $getAssetJobMessage(AssetJobName.RefreshFaces), type: NotificationType.Info });
+    } catch (error) {
+      handleError(error, $t('errors.unable_to_submit_job'));
+    }
+  };
 </script>
 
 {#if asset.exifInfo?.country}
@@ -87,4 +98,17 @@
   <Portal>
     <ChangeLocation {asset} onConfirm={handleConfirmChangeLocation} onCancel={() => (isShowChangeLocation = false)} />
   </Portal>
+{/if}
+
+{#if asset.type === AssetType.VIDEO}
+  <button
+    type="button"
+    class="flex w-full text-start justify-between place-items-start gap-4 py-4 rounded-lg hover:dark:text-immich-dark-primary hover:text-immich-primary"
+    onclick={handleRescanFaces}
+  >
+    <div class="flex gap-4">
+      <div><Icon path={mdiHeadSyncOutline} size="24" /></div>
+      <p>{$t('video_face_search')}</p>
+    </div>
+  </button>
 {/if}

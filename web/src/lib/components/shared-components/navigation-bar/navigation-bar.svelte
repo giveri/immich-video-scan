@@ -18,7 +18,15 @@
   import { sidebarStore } from '$lib/stores/sidebar.svelte';
   import { user } from '$lib/stores/user.store';
   import { Button, IconButton } from '@immich/ui';
-  import { mdiBellBadge, mdiBellOutline, mdiMagnify, mdiMenu, mdiTrayArrowUp } from '@mdi/js';
+  import {
+    mdiBellBadge,
+    mdiBellOutline,
+    mdiMagnify,
+    mdiMenu,
+    mdiTrayArrowUp,
+    mdiLightningBolt,
+  } from '@mdi/js';
+  import FrameScanSettingsPanel from '$lib/components/shared-components/navigation-bar/frame-scan-settings-panel.svelte';
   import { t } from 'svelte-i18n';
   import ThemeButton from '../theme-button.svelte';
   import UserAvatar from '../user-avatar.svelte';
@@ -35,6 +43,7 @@
 
   let shouldShowAccountInfoPanel = $state(false);
   let shouldShowNotificationPanel = $state(false);
+  let shouldShowFrameSettingsPanel = $state(false);
   let innerWidth: number = $state(0);
   const hasUnreadNotifications = $derived(notificationManager.notifications.length > 0);
 </script>
@@ -95,6 +104,25 @@
         {/if}
 
         {#if !page.url.pathname.includes('/admin') && showUploadButton && onUploadClick}
+          <div
+            use:clickOutside={{
+              onOutclick: () => (shouldShowFrameSettingsPanel = false),
+              onEscape: () => (shouldShowFrameSettingsPanel = false),
+            }}
+          >
+            <IconButton
+              color="secondary"
+              shape="round"
+              variant="ghost"
+              size="medium"
+              icon={mdiLightningBolt}
+              onclick={() => (shouldShowFrameSettingsPanel = !shouldShowFrameSettingsPanel)}
+              aria-label={$t('frame_scan_settings')}
+            />
+            {#if shouldShowFrameSettingsPanel}
+              <FrameScanSettingsPanel onClose={() => (shouldShowFrameSettingsPanel = false)} />
+            {/if}
+          </div>
           <Button
             leadingIcon={mdiTrayArrowUp}
             onclick={onUploadClick}

@@ -96,6 +96,13 @@ class CastUpdate {
   gCastEnabled?: boolean;
 }
 
+class VideoUpdate {
+  @Optional()
+  @IsInt()
+  @IsPositive()
+  frameScanMs?: number;
+}
+
 export class UserPreferencesUpdateDto {
   @Optional()
   @ValidateNested()
@@ -156,6 +163,11 @@ export class UserPreferencesUpdateDto {
   @ValidateNested()
   @Type(() => CastUpdate)
   cast?: CastUpdate;
+
+  @Optional()
+  @ValidateNested()
+  @Type(() => VideoUpdate)
+  video?: VideoUpdate;
 }
 
 class AlbumsResponse {
@@ -214,6 +226,10 @@ class CastResponse {
   gCastEnabled: boolean = false;
 }
 
+class VideoResponse {
+  frameScanMs: number = 1000;
+}
+
 export class UserPreferencesResponseDto implements UserPreferences {
   albums!: AlbumsResponse;
   folders!: FoldersResponse;
@@ -226,6 +242,7 @@ export class UserPreferencesResponseDto implements UserPreferences {
   download!: DownloadResponse;
   purchase!: PurchaseResponse;
   cast!: CastResponse;
+  video!: VideoResponse;
 }
 
 export const mapPreferences = (preferences: UserPreferences): UserPreferencesResponseDto => {

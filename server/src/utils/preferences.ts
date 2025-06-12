@@ -48,6 +48,9 @@ const getDefaultPreferences = (): UserPreferences => {
     cast: {
       gCastEnabled: false,
     },
+    video: {
+      frameScanMs: 1000,
+    },
   };
 };
 

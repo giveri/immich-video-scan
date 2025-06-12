@@ -407,7 +407,14 @@ export class PersonRepository {
     }
 
     if (embeddingsToAdd?.length) {
-      (query as any) = query.with('added_embeddings', (db) => db.insertInto('face_search').values(embeddingsToAdd));
+      (query as any) = query.with('added_embeddings', (db) =>
+        db
+          .insertInto('face_search')
+          .values(embeddingsToAdd)
+          .onConflict((oc) =>
+            oc.column('faceId').doUpdateSet((eb) => ({ embedding: eb.ref('excluded.embedding') })),
+          ),
+      );
     }
 
     await query.selectFrom(sql`(select 1)`.as('dummy')).execute();

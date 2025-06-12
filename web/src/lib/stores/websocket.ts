@@ -1,6 +1,7 @@
 import { authManager } from '$lib/managers/auth-manager.svelte';
 import { notificationManager } from '$lib/stores/notification-manager.svelte';
 import { createEventEmitter } from '$lib/utils/eventemitter';
+import { videoFaceProgress } from '$lib/stores/video-face-progress.store';
 import { type AssetResponseDto, type NotificationDto, type ServerVersionResponseDto } from '@immich/sdk';
 import { io, type Socket } from 'socket.io-client';
 import { get, writable } from 'svelte/store';
@@ -23,6 +24,11 @@ export interface Events {
   on_asset_restore: (assetIds: string[]) => void;
   on_asset_stack_update: (assetIds: string[]) => void;
   on_person_thumbnail: (personId: string) => void;
+  on_asset_face_progress: (progress: {
+    assetId: string;
+    processed: number;
+    total: number;
+  }) => void;
   on_server_version: (serverVersion: ServerVersionResponseDto) => void;
   on_config_update: () => void;
   on_new_release: (newRelase: ReleaseEvent) => void;
@@ -53,6 +59,9 @@ websocket
   .on('on_new_release', (releaseVersion) => websocketStore.release.set(releaseVersion))
   .on('on_session_delete', () => authManager.logout())
   .on('on_notification', () => notificationManager.refresh())
+  .on('on_asset_face_progress', (progress) =>
+    videoFaceProgress.setProgress(progress.assetId, progress.processed, progress.total),
+  )
   .on('connect_error', (e) => console.log('Websocket Connect Error', e));
 
 export const openWebsocketConnection = () => {

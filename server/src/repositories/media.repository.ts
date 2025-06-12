@@ -3,6 +3,8 @@ import { ExifDateTime, exiftool, WriteTags } from 'exiftool-vendored';
 import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
 import { Duration } from 'luxon';
 import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { Writable } from 'node:stream';
 import sharp from 'sharp';
 import { ORIENTATION_TO_SHARP_ROTATION } from 'src/constants';
@@ -14,6 +16,7 @@ import {
   GenerateThumbhashOptions,
   GenerateThumbnailOptions,
   ImageDimensions,
+  ExtractFramesOptions,
   ProbeOptions,
   TranscodeCommand,
   VideoInfo,
@@ -177,6 +180,32 @@ export class MediaRepository {
         .toBuffer({ resolveWithObject: true }),
     ]);
     return Buffer.from(rgbaToThumbHash(info.width, info.height, data));
+  }
+
+  async extractFrames(input: string, options: ExtractFramesOptions = {}): Promise<string[]> {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'immich-frames-'));
+    const output = path.join(tmpDir, 'frame-%03d.jpg');
+    const fps = options.fps ?? 1;
+    let limit = options.limit;
+
+    if (limit == null) {
+      const info = await this.probe(input, { countFrames: true });
+      limit = info.videoStreams[0]?.frameCount ?? 0;
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg(input)
+        .outputOptions(['-vf', `fps=${fps}`])
+        .frames(limit)
+        .output(output)
+        .on('error', reject)
+        .on('end', () => resolve())
+        .run();
+    });
+
+    const entries = await fs.readdir(tmpDir);
+    const files = entries.map((f) => path.join(tmpDir, f));
+    return files;
   }
 
   async probe(input: string, options?: ProbeOptions): Promise<VideoInfo> {

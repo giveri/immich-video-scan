@@ -146,4 +146,7 @@ export const playVideoThumbnailOnHover = persisted<boolean>('play-video-thumbnai
 
 export const loopVideo = persisted<boolean>('loop-video', true, {});
 
+// Interval in milliseconds between scanned frames during video processing
+export const videoFrameScanMs = persisted<number>('video-frame-scan-ms', 1000, {});
+
 export const recentAlbumsDropdown = persisted<boolean>('recent-albums-open', true, {});

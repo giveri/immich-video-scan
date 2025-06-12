@@ -24,6 +24,7 @@ import {
   PersonUpdateDto,
 } from 'src/dtos/person.dto';
 import {
+  AssetType,
   AssetVisibility,
   CacheControl,
   JobName,
@@ -42,6 +43,9 @@ import { JobItem, JobOf } from 'src/types';
 import { ImmichFileResponse } from 'src/utils/file';
 import { mimeTypes } from 'src/utils/mime-types';
 import { isFacialRecognitionEnabled } from 'src/utils/misc';
+import { getPreferences } from 'src/utils/preferences';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 @Injectable()
 export class PersonService extends BaseService {
@@ -300,15 +304,53 @@ export class PersonService extends BaseService {
       return JobStatus.SKIPPED;
     }
 
-    const { imageHeight, imageWidth, faces } = await this.machineLearningRepository.detectFaces(
+    const detections = await this.machineLearningRepository.detectFaces(
       machineLearning.urls,
       previewFile.path,
       machineLearning.facialRecognition,
     );
-    this.logger.debug(`${faces.length} faces detected in ${previewFile.path}`);
+    this.logger.debug(`${detections.faces.length} faces detected in ${previewFile.path}`);
+
+    if (asset.type === AssetType.VIDEO) {
+      const metadata = await this.userRepository.getMetadata(asset.ownerId);
+      const prefs = getPreferences(metadata);
+      const interval = prefs.video.frameScanMs ?? 1000;
+      const fps = 1000 / interval;
+      const frames = await this.mediaRepository.extractFrames(asset.originalPath, { fps });
+      const total = frames.length;
+      let processed = 0;
+        for (const frame of frames) {
+          this.eventRepository.clientSend('on_asset_face_progress', asset.ownerId, {
+            assetId: asset.id,
+            processed,
+            total,
+          });
+        const result = await this.machineLearningRepository.detectFaces(
+          machineLearning.urls,
+          frame,
+          machineLearning.facialRecognition,
+        );
+        processed++;
+        detections.faces.push(...result.faces);
+        this.eventRepository.clientSend('on_asset_face_progress', asset.ownerId, {
+          assetId: asset.id,
+          processed,
+          total,
+        });
+          await fs.unlink(frame).catch(() => null);
+        }
+        this.eventRepository.clientSend('on_asset_face_progress', asset.ownerId, {
+          assetId: asset.id,
+          processed: total,
+          total,
+        });
+        if (frames.length > 0) {
+          await fs.rm(path.dirname(frames[0]), { recursive: true, force: true }).catch(() => null);
+      }
+    }
 
     const facesToAdd: (Insertable<AssetFaces> & { id: string })[] = [];
-    const embeddings: FaceSearch[] = [];
+    const embeddingsMap = new Map<string, FaceSearch>();
     const mlFaceIds = new Set<string>();
 
     for (const face of asset.faces) {
@@ -317,34 +359,48 @@ export class PersonService extends BaseService {
       }
     }
 
-    const heightScale = imageHeight / (asset.faces[0]?.imageHeight || 1);
-    const widthScale = imageWidth / (asset.faces[0]?.imageWidth || 1);
-    for (const { boundingBox, embedding } of faces) {
+    const heightScale = detections.imageHeight / (asset.faces[0]?.imageHeight || 1);
+    const widthScale = detections.imageWidth / (asset.faces[0]?.imageWidth || 1);
+    const newBoxes: { box: BoundingBox; id: string }[] = [];
+    for (const { boundingBox, embedding } of detections.faces) {
       const scaledBox = {
         x1: boundingBox.x1 * widthScale,
         y1: boundingBox.y1 * heightScale,
         x2: boundingBox.x2 * widthScale,
         y2: boundingBox.y2 * heightScale,
       };
-      const match = asset.faces.find((face) => this.iou(face, scaledBox) > 0.5);
+      const match = asset.faces.find((face) =>
+        this.iou(
+          { x1: face.boundingBoxX1, y1: face.boundingBoxY1, x2: face.boundingBoxX2, y2: face.boundingBoxY2 },
+          scaledBox,
+        ) > 0.5,
+      );
+      const newMatch = newBoxes.find((f) => this.iou(f.box, scaledBox) > 0.5);
 
-      if (match && !mlFaceIds.delete(match.id)) {
-        embeddings.push({ faceId: match.id, embedding });
-      } else if (!match) {
+      if (match) {
+        if (!mlFaceIds.delete(match.id)) {
+          if (!embeddingsMap.has(match.id)) {
+            embeddingsMap.set(match.id, { faceId: match.id, embedding });
+          }
+        }
+      } else if (!newMatch) {
         const faceId = this.cryptoRepository.randomUUID();
-        facesToAdd.push({
+        const toAdd = {
           id: faceId,
           assetId: asset.id,
-          imageHeight,
-          imageWidth,
+          imageHeight: detections.imageHeight,
+          imageWidth: detections.imageWidth,
           boundingBoxX1: boundingBox.x1,
           boundingBoxY1: boundingBox.y1,
           boundingBoxX2: boundingBox.x2,
           boundingBoxY2: boundingBox.y2,
-        });
-        embeddings.push({ faceId, embedding });
+        } as const;
+        facesToAdd.push(toAdd);
+        newBoxes.push({ box: scaledBox, id: faceId });
+        embeddingsMap.set(faceId, { faceId, embedding });
       }
     }
+    const embeddings = Array.from(embeddingsMap.values());
     const faceIdsToRemove = [...mlFaceIds];
 
     if (facesToAdd.length > 0 || faceIdsToRemove.length > 0 || embeddings.length > 0) {
@@ -368,18 +424,15 @@ export class PersonService extends BaseService {
     return JobStatus.SUCCESS;
   }
 
-  private iou(
-    face: { boundingBoxX1: number; boundingBoxY1: number; boundingBoxX2: number; boundingBoxY2: number },
-    newBox: BoundingBox,
-  ): number {
-    const x1 = Math.max(face.boundingBoxX1, newBox.x1);
-    const y1 = Math.max(face.boundingBoxY1, newBox.y1);
-    const x2 = Math.min(face.boundingBoxX2, newBox.x2);
-    const y2 = Math.min(face.boundingBoxY2, newBox.y2);
+  private iou(box1: BoundingBox, box2: BoundingBox): number {
+    const x1 = Math.max(box1.x1, box2.x1);
+    const y1 = Math.max(box1.y1, box2.y1);
+    const x2 = Math.min(box1.x2, box2.x2);
+    const y2 = Math.min(box1.y2, box2.y2);
 
     const intersection = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
-    const area1 = (face.boundingBoxX2 - face.boundingBoxX1) * (face.boundingBoxY2 - face.boundingBoxY1);
-    const area2 = (newBox.x2 - newBox.x1) * (newBox.y2 - newBox.y1);
+    const area1 = (box1.x2 - box1.x1) * (box1.y2 - box1.y1);
+    const area2 = (box2.x2 - box2.x1) * (box2.y2 - box2.y1);
     const union = area1 + area2 - intersection;
 
     return intersection / union;

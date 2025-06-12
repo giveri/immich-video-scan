@@ -8,6 +8,7 @@
   import NavigationLoadingBar from '$lib/components/shared-components/navigation-loading-bar.svelte';
   import NotificationList from '$lib/components/shared-components/notification/notification-list.svelte';
   import UploadPanel from '$lib/components/shared-components/upload-panel.svelte';
+  import VideoFaceProgress from '$lib/components/shared-components/video-face-progress.svelte';
   import VersionAnnouncementBox from '$lib/components/shared-components/version-announcement-box.svelte';
   import { eventManager } from '$lib/managers/event-manager.svelte';
   import { serverConfig } from '$lib/stores/server-config.store';
@@ -120,6 +121,7 @@
 
 <DownloadPanel />
 <UploadPanel />
+<VideoFaceProgress />
 <NotificationList />
 
 {#if $user?.isAdmin}

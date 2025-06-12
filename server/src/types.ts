@@ -115,6 +115,13 @@ export interface VideoInfo {
   audioStreams: AudioStreamInfo[];
 }
 
+export interface ExtractFramesOptions {
+  /** frames per second to extract */
+  fps?: number;
+  /** maximum number of frames to extract */
+  limit?: number;
+}
+
 export interface TranscodeCommand {
   inputOptions: string[];
   outputOptions: string[];
@@ -508,6 +515,9 @@ export interface UserPreferences {
   };
   cast: {
     gCastEnabled: boolean;
+  };
+  video: {
+    frameScanMs: number;
   };
 }
 
