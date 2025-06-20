@@ -18,14 +18,7 @@
   import { sidebarStore } from '$lib/stores/sidebar.svelte';
   import { user } from '$lib/stores/user.store';
   import { Button, IconButton } from '@immich/ui';
-  import {
-    mdiBellBadge,
-    mdiBellOutline,
-    mdiMagnify,
-    mdiMenu,
-    mdiTrayArrowUp,
-    mdiLightningBolt,
-  } from '@mdi/js';
+  import { mdiBellBadge, mdiBellOutline, mdiMagnify, mdiMenu, mdiTrayArrowUp, mdiLightningBolt } from '@mdi/js';
   import FrameScanSettingsPanel from '$lib/components/shared-components/navigation-bar/frame-scan-settings-panel.svelte';
   import { t } from 'svelte-i18n';
   import ThemeButton from '../theme-button.svelte';

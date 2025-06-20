@@ -592,6 +592,18 @@ export class PersonService extends BaseService {
     return JobStatus.SUCCESS;
   }
 
+  @OnJob({ name: JobName.QUEUE_VIDEO_FACE_RECOGNITION, queue: QueueName.VIDEO_FACE_RECOGNITION })
+  async handleQueueVideoFaceRecognition(): Promise<JobStatus> {
+    this.logger.warn('Video face recognition queue is not implemented');
+    return JobStatus.SKIPPED;
+  }
+
+  @OnJob({ name: JobName.VIDEO_FACE_RECOGNITION, queue: QueueName.VIDEO_FACE_RECOGNITION })
+  async handleVideoFaceRecognition(): Promise<JobStatus> {
+    this.logger.warn('Video face recognition job is not implemented');
+    return JobStatus.SKIPPED;
+  }
+
   async mergePerson(auth: AuthDto, id: string, dto: MergePersonDto): Promise<BulkIdResponseDto[]> {
     const mergeIds = dto.ids;
     if (mergeIds.includes(id)) {

@@ -3,9 +3,12 @@
   import ChangeLocation from '$lib/components/shared-components/change-location.svelte';
   import Portal from '$lib/components/shared-components/portal/portal.svelte';
   import { handleError } from '$lib/utils/handle-error';
-import { updateAsset, runAssetJobs, AssetJobName, type AssetResponseDto, AssetTypeEnum } from '@immich/sdk';
+  import { updateAsset, runAssetJobs, AssetJobName, type AssetResponseDto, AssetTypeEnum } from '@immich/sdk';
   import { mdiMapMarkerOutline, mdiPencil, mdiHeadSyncOutline } from '@mdi/js';
-  import { notificationController, NotificationType } from '$lib/components/shared-components/notification/notification';
+  import {
+    notificationController,
+    NotificationType,
+  } from '$lib/components/shared-components/notification/notification';
   import { getAssetJobMessage } from '$lib/utils';
   import { t } from 'svelte-i18n';
 
@@ -34,7 +37,10 @@ import { updateAsset, runAssetJobs, AssetJobName, type AssetResponseDto, AssetTy
   const handleRescanFaces = async () => {
     try {
       await runAssetJobs({ assetJobsDto: { assetIds: [asset.id], name: AssetJobName.RefreshFaces } });
-      notificationController.show({ message: $getAssetJobMessage(AssetJobName.RefreshFaces), type: NotificationType.Info });
+      notificationController.show({
+        message: $getAssetJobMessage(AssetJobName.RefreshFaces),
+        type: NotificationType.Info,
+      });
     } catch (error) {
       handleError(error, $t('errors.unable_to_submit_job'));
     }
