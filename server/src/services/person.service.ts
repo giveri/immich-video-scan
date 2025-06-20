@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Insertable, Updateable } from 'kysely';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { JOBS_ASSET_PAGINATION_SIZE } from 'src/constants';
 import { Person } from 'src/database';
 import { AssetFaces, FaceSearch } from 'src/db';
@@ -44,8 +46,6 @@ import { ImmichFileResponse } from 'src/utils/file';
 import { mimeTypes } from 'src/utils/mime-types';
 import { isFacialRecognitionEnabled } from 'src/utils/misc';
 import { getPreferences } from 'src/utils/preferences';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 
 @Injectable()
 export class PersonService extends BaseService {
@@ -319,12 +319,12 @@ export class PersonService extends BaseService {
       const frames = await this.mediaRepository.extractFrames(asset.originalPath, { fps });
       const total = frames.length;
       let processed = 0;
-        for (const frame of frames) {
-          this.eventRepository.clientSend('on_asset_face_progress', asset.ownerId, {
-            assetId: asset.id,
-            processed,
-            total,
-          });
+      for (const frame of frames) {
+        this.eventRepository.clientSend('on_asset_face_progress', asset.ownerId, {
+          assetId: asset.id,
+          processed,
+          total,
+        });
         const result = await this.machineLearningRepository.detectFaces(
           machineLearning.urls,
           frame,
@@ -337,15 +337,15 @@ export class PersonService extends BaseService {
           processed,
           total,
         });
-          await fs.unlink(frame).catch(() => null);
-        }
-        this.eventRepository.clientSend('on_asset_face_progress', asset.ownerId, {
-          assetId: asset.id,
-          processed: total,
-          total,
-        });
-        if (frames.length > 0) {
-          await fs.rm(path.dirname(frames[0]), { recursive: true, force: true }).catch(() => null);
+        await fs.unlink(frame).catch(() => null);
+      }
+      this.eventRepository.clientSend('on_asset_face_progress', asset.ownerId, {
+        assetId: asset.id,
+        processed: total,
+        total,
+      });
+      if (frames.length > 0) {
+        await fs.rm(path.dirname(frames[0]), { recursive: true, force: true }).catch(() => null);
       }
     }
 
@@ -369,11 +369,12 @@ export class PersonService extends BaseService {
         x2: boundingBox.x2 * widthScale,
         y2: boundingBox.y2 * heightScale,
       };
-      const match = asset.faces.find((face) =>
-        this.iou(
-          { x1: face.boundingBoxX1, y1: face.boundingBoxY1, x2: face.boundingBoxX2, y2: face.boundingBoxY2 },
-          scaledBox,
-        ) > 0.5,
+      const match = asset.faces.find(
+        (face) =>
+          this.iou(
+            { x1: face.boundingBoxX1, y1: face.boundingBoxY1, x2: face.boundingBoxX2, y2: face.boundingBoxY2 },
+            scaledBox,
+          ) > 0.5,
       );
       const newMatch = newBoxes.find((f) => this.iou(f.box, scaledBox) > 0.5);
 

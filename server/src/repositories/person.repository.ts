@@ -411,9 +411,7 @@ export class PersonRepository {
         db
           .insertInto('face_search')
           .values(embeddingsToAdd)
-          .onConflict((oc) =>
-            oc.column('faceId').doUpdateSet((eb) => ({ embedding: eb.ref('excluded.embedding') })),
-          ),
+          .onConflict((oc) => oc.column('faceId').doUpdateSet((eb) => ({ embedding: eb.ref('excluded.embedding') }))),
       );
     }
 

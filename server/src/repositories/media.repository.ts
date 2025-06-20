@@ -13,10 +13,10 @@ import { Colorspace, LogLevel, RawExtractedFormat } from 'src/enum';
 import { LoggingRepository } from 'src/repositories/logging.repository';
 import {
   DecodeToBufferOptions,
+  ExtractFramesOptions,
   GenerateThumbhashOptions,
   GenerateThumbnailOptions,
   ImageDimensions,
-  ExtractFramesOptions,
   ProbeOptions,
   TranscodeCommand,
   VideoInfo,

@@ -24,11 +24,11 @@ describe(JobService.name, () => {
     it('should update concurrency', () => {
       sut.onConfigUpdate({ newConfig: defaults, oldConfig: {} as SystemConfig });
 
-      expect(mocks.job.setConcurrency).toHaveBeenCalledTimes(15);
-      expect(mocks.job.setConcurrency).toHaveBeenNthCalledWith(5, QueueName.FACIAL_RECOGNITION, 1);
-      expect(mocks.job.setConcurrency).toHaveBeenNthCalledWith(7, QueueName.DUPLICATE_DETECTION, 1);
-      expect(mocks.job.setConcurrency).toHaveBeenNthCalledWith(8, QueueName.BACKGROUND_TASK, 5);
-      expect(mocks.job.setConcurrency).toHaveBeenNthCalledWith(9, QueueName.STORAGE_TEMPLATE_MIGRATION, 1);
+      expect(mocks.job.setConcurrency).toHaveBeenCalledTimes(16);
+      expect(mocks.job.setConcurrency).toHaveBeenNthCalledWith(6, QueueName.FACIAL_RECOGNITION, 1);
+      expect(mocks.job.setConcurrency).toHaveBeenNthCalledWith(8, QueueName.DUPLICATE_DETECTION, 1);
+      expect(mocks.job.setConcurrency).toHaveBeenNthCalledWith(9, QueueName.BACKGROUND_TASK, 5);
+      expect(mocks.job.setConcurrency).toHaveBeenNthCalledWith(10, QueueName.STORAGE_TEMPLATE_MIGRATION, 1);
     });
   });
 
@@ -145,7 +145,10 @@ describe(JobService.name, () => {
 
       await sut.handleCommand(QueueName.VIDEO_FACE_RECOGNITION, { command: JobCommand.START, force: false });
 
-      expect(mocks.job.queue).toHaveBeenCalledWith({ name: JobName.QUEUE_VIDEO_FACE_RECOGNITION, data: { force: false } });
+      expect(mocks.job.queue).toHaveBeenCalledWith({
+        name: JobName.QUEUE_VIDEO_FACE_RECOGNITION,
+        data: { force: false },
+      });
     });
 
     it('should handle a start storage template migration command', async () => {

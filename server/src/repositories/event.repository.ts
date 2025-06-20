@@ -109,7 +109,7 @@ export interface ClientEventMap {
       assetId: string;
       processed: number;
       total: number;
-    }
+    },
   ];
   on_server_version: [ServerVersionResponseDto];
   on_config_update: [];
