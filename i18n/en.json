@@ -350,7 +350,9 @@
     "version_check_settings": "Version Check",
     "version_check_settings_description": "Enable/disable the new version notification",
     "video_conversion_job": "Transcode videos",
-    "video_conversion_job_description": "Transcode videos for wider compatibility with browsers and devices"
+    "video_conversion_job_description": "Transcode videos for wider compatibility with browsers and devices",
+    "video_face_recognition_job": "Video face recognition",
+    "video_face_recognition_job_description": "Detect faces in uploaded videos by scanning individual frames. \"Reset\" reprocesses all videos and clears existing data. \"Missing\" queues videos that haven't been processed yet."
   },
   "admin_email": "Admin Email",
   "admin_password": "Admin Password",
@@ -1532,6 +1534,8 @@
   "restore_user": "Restore user",
   "restored_asset": "Restored asset",
   "resume": "Resume",
+  "pause_automatic_face_recognition": "Pause automatic face-recognition",
+  "resume_automatic_face_recognition": "Automatic face recognition on upload",
   "retry_upload": "Retry upload",
   "review_duplicates": "Review duplicates",
   "role": "Role",

@@ -26,7 +26,7 @@
   import StorageMigrationDescription from './storage-migration-description.svelte';
 
   interface Props {
-    jobs: AllJobStatusResponseDto;
+    jobs: AllJobStatusResponseDto & Partial<Record<typeof VIDEO_FACE_RECOGNITION, JobStatusDto>>;
   }
 
   let { jobs = $bindable() }: Props = $props();
@@ -40,6 +40,8 @@
     missingText: string;
     disabled?: boolean;
     icon: string;
+    pauseLabel?: string;
+    resumeLabel?: string;
     handleCommand?: (jobId: JobName, jobCommand: JobCommandDto) => Promise<void>;
   }
 
@@ -60,7 +62,25 @@
     await handleCommand(jobId, dto);
   };
 
-  let jobDetails: Partial<Record<JobName, JobDetails>> = {
+  const VIDEO_FACE_RECOGNITION = 'videoFaceRecognition';
+  type ExtendedJobName = JobName | typeof VIDEO_FACE_RECOGNITION;
+
+  const EMPTY_JOB_STATUS: JobStatusDto = {
+    jobCounts: {
+      active: 0,
+      completed: 0,
+      delayed: 0,
+      failed: 0,
+      paused: 0,
+      waiting: 0,
+    },
+    queueStatus: {
+      isActive: false,
+      isPaused: false,
+    },
+  };
+
+  let jobDetails: Partial<Record<ExtendedJobName, JobDetails>> = {
     [JobName.ThumbnailGeneration]: {
       icon: mdiFileJpgBox,
       title: $getJobName(JobName.ThumbnailGeneration),
@@ -131,6 +151,15 @@
       allText: $t('all'),
       missingText: $t('missing'),
     },
+    [VIDEO_FACE_RECOGNITION]: {
+      icon: mdiFaceRecognition,
+      title: $t('admin.video_face_recognition_job'),
+      subtitle: $t('admin.video_face_recognition_job_description'),
+      allText: $t('reset'),
+      missingText: $t('missing'),
+      pauseLabel: $t('pause_automatic_face_recognition'),
+      resumeLabel: $t('resume_automatic_face_recognition'),
+    },
     [JobName.StorageTemplateMigration]: {
       icon: mdiFolderMove,
       title: $getJobName(JobName.StorageTemplateMigration),
@@ -145,13 +174,13 @@
     },
   };
 
-  let jobList = Object.entries(jobDetails) as [JobName, JobDetails][];
+  let jobList = Object.entries(jobDetails) as [ExtendedJobName, JobDetails][];
 
-  async function handleCommand(jobId: JobName, jobCommand: JobCommandDto) {
+  async function handleCommand(jobId: ExtendedJobName, jobCommand: JobCommandDto) {
     const title = jobDetails[jobId]?.title;
 
     try {
-      jobs[jobId] = await sendJobCommand({ id: jobId, jobCommandDto: jobCommand });
+      jobs[jobId] = await sendJobCommand({ id: jobId as JobName, jobCommandDto: jobCommand });
 
       switch (jobCommand.command) {
         case JobCommand.Empty: {
@@ -169,8 +198,8 @@
 </script>
 
 <div class="flex flex-col gap-7">
-  {#each jobList as [jobName, { title, subtitle, description, disabled, allText, refreshText, missingText, icon, handleCommand: handleCommandOverride }] (jobName)}
-    {@const { jobCounts, queueStatus } = jobs[jobName]}
+  {#each jobList as [jobName, { title, subtitle, description, disabled, allText, refreshText, missingText, icon, pauseLabel, resumeLabel, handleCommand: handleCommandOverride }] (jobName)}
+    {@const { jobCounts, queueStatus } = jobs[jobName] ?? EMPTY_JOB_STATUS}
     <JobTile
       {icon}
       {title}
@@ -180,6 +209,8 @@
       allText={allText?.toUpperCase()}
       refreshText={refreshText?.toUpperCase()}
       missingText={missingText.toUpperCase()}
+      pauseLabel={pauseLabel?.toUpperCase()}
+      resumeLabel={resumeLabel?.toUpperCase()}
       {jobCounts}
       {queueStatus}
       onCommand={(command) => (handleCommandOverride || handleCommand)(jobName, command)}

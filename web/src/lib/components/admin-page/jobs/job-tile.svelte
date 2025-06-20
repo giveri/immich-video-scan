@@ -30,6 +30,8 @@
     allText: string | undefined;
     refreshText: string | undefined;
     missingText: string;
+    pauseLabel?: string;
+    resumeLabel?: string;
     onCommand: (command: JobCommandDto) => void;
   }
 
@@ -44,6 +46,8 @@
     allText,
     refreshText,
     missingText,
+    pauseLabel,
+    resumeLabel,
     onCommand,
   }: Props = $props();
 
@@ -153,12 +157,12 @@
         <JobTileButton color="light-gray" onClick={() => onCommand({ command: JobCommand.Resume, force: false })}>
           <!-- size property is not reactive, so have to use width and height -->
           <Icon path={mdiFastForward} {size} />
-          {$t('resume').toUpperCase()}
+          {(resumeLabel ?? $t('resume')).toUpperCase()}
         </JobTileButton>
       {:else}
         <JobTileButton color="light-gray" onClick={() => onCommand({ command: JobCommand.Pause, force: false })}>
           <Icon path={mdiPause} size="24" />
-          {$t('pause').toUpperCase()}
+          {(pauseLabel ?? $t('pause')).toUpperCase()}
         </JobTileButton>
       {/if}
     {/if}
