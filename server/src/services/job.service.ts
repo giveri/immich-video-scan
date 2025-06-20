@@ -154,6 +154,10 @@ export class JobService extends BaseService {
         return this.jobRepository.queue({ name: JobName.QUEUE_VIDEO_CONVERSION, data: { force } });
       }
 
+      case QueueName.VIDEO_FACE_RECOGNITION: {
+        return this.jobRepository.queue({ name: JobName.QUEUE_VIDEO_FACE_RECOGNITION, data: { force } });
+      }
+
       case QueueName.STORAGE_TEMPLATE_MIGRATION: {
         return this.jobRepository.queue({ name: JobName.STORAGE_TEMPLATE_MIGRATION });
       }

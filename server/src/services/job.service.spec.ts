@@ -91,6 +91,7 @@ describe(JobService.name, () => {
         [QueueName.MIGRATION]: expectedJobStatus,
         [QueueName.THUMBNAIL_GENERATION]: expectedJobStatus,
         [QueueName.VIDEO_CONVERSION]: expectedJobStatus,
+        [QueueName.VIDEO_FACE_RECOGNITION]: expectedJobStatus,
         [QueueName.FACE_DETECTION]: expectedJobStatus,
         [QueueName.FACIAL_RECOGNITION]: expectedJobStatus,
         [QueueName.SIDECAR]: expectedJobStatus,
@@ -137,6 +138,14 @@ describe(JobService.name, () => {
       await sut.handleCommand(QueueName.VIDEO_CONVERSION, { command: JobCommand.START, force: false });
 
       expect(mocks.job.queue).toHaveBeenCalledWith({ name: JobName.QUEUE_VIDEO_CONVERSION, data: { force: false } });
+    });
+
+    it('should handle a start video face recognition command', async () => {
+      mocks.job.getQueueStatus.mockResolvedValue({ isActive: false, isPaused: false });
+
+      await sut.handleCommand(QueueName.VIDEO_FACE_RECOGNITION, { command: JobCommand.START, force: false });
+
+      expect(mocks.job.queue).toHaveBeenCalledWith({ name: JobName.QUEUE_VIDEO_FACE_RECOGNITION, data: { force: false } });
     });
 
     it('should handle a start storage template migration command', async () => {

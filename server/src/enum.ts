@@ -431,6 +431,7 @@ export enum QueueName {
   THUMBNAIL_GENERATION = 'thumbnailGeneration',
   METADATA_EXTRACTION = 'metadataExtraction',
   VIDEO_CONVERSION = 'videoConversion',
+  VIDEO_FACE_RECOGNITION = 'videoFaceRecognition',
   FACE_DETECTION = 'faceDetection',
   FACIAL_RECOGNITION = 'facialRecognition',
   SMART_SEARCH = 'smartSearch',
@@ -489,6 +490,8 @@ export enum JobName {
   FACE_DETECTION = 'face-detection',
   QUEUE_FACIAL_RECOGNITION = 'queue-facial-recognition',
   FACIAL_RECOGNITION = 'facial-recognition',
+  QUEUE_VIDEO_FACE_RECOGNITION = 'queue-video-face-recognition',
+  VIDEO_FACE_RECOGNITION = 'video-face-recognition',
 
   // library management
   LIBRARY_QUEUE_SYNC_FILES = 'library-queue-sync-files',

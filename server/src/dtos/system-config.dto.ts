@@ -187,6 +187,12 @@ class SystemConfigJobDto implements Record<ConcurrentQueueName, JobSettingsDto> 
   @ValidateNested()
   @IsObject()
   @Type(() => JobSettingsDto)
+  [QueueName.VIDEO_FACE_RECOGNITION]!: JobSettingsDto;
+
+  @ApiProperty({ type: JobSettingsDto })
+  @ValidateNested()
+  @IsObject()
+  @Type(() => JobSettingsDto)
   [QueueName.SMART_SEARCH]!: JobSettingsDto;
 
   @ApiProperty({ type: JobSettingsDto })
